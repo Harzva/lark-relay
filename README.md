@@ -25,20 +25,21 @@ controlled local inbox.
 
 ## Install
 
-Run without installing:
+Run directly from GitHub:
+
+```bash
+npx github:Harzva/lark-relay --help
+npx github:Harzva/lark-relay init --config lark-relay.config.json
+```
+
+After the package is published to npm, run without installing:
 
 ```bash
 npx @harzva/lark-relay --help
 npx @harzva/lark-relay init --config lark-relay.config.json
 ```
 
-Run directly from GitHub before the npm package is published:
-
-```bash
-npx github:Harzva/lark-relay --help
-```
-
-Install globally:
+After npm publication, install globally:
 
 ```bash
 npm install -g @harzva/lark-relay

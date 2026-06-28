@@ -119,8 +119,8 @@ Usage:
   lark-relay run [--config lark-relay.config.json] [--once] [--max-events 1] [--timeout 60s]
 
 Install:
-  npx @harzva/lark-relay init
-  npm install -g @harzva/lark-relay
+  npx github:Harzva/lark-relay init
+  npm install -g @harzva/lark-relay  # after npm publication
 
 Core idea:
   MobileCode -> Lark -> lark-relay on Mac mini -> http://127.0.0.1 Harvis API.

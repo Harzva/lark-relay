@@ -1,0 +1,9 @@
+{
+  "event_id": "evt_mobilecode_demo_001",
+  "request_id": "req_mobilecode_demo_001",
+  "chat_id": "oc_REPLACE_WITH_CHAT_ID",
+  "sender_id": "ou_REPLACE_WITH_SENDER_ID",
+  "message_id": "om_REPLACE_WITH_MESSAGE_ID",
+  "message_type": "text",
+  "content": "{\"text\":\"[mobilecode] {\\\"type\\\":\\\"mobilecode.evidence.v1\\\",\\\"task_id\\\":\\\"mc_demo_001\\\",\\\"status\\\":\\\"verified\\\",\\\"summary\\\":\\\"Phone preview passed for the generated HTML page.\\\",\\\"evidence\\\":[{\\\"kind\\\":\\\"screenshot\\\",\\\"url\\\":\\\"lark://file/demo\\\"}],\\\"next_action\\\":\\\"ready_for_publish\\\"}\"}"
+}

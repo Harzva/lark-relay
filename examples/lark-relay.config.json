@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "lark-relay.config.v1",
+  "lark": {
+    "cliBin": "lark-cli",
+    "profile": "harvis-mobilecode-bot",
+    "identity": "bot",
+    "eventKey": "im.message.receive_v1",
+    "targetChatIds": ["oc_REPLACE_WITH_CHAT_ID"],
+    "triggerPrefixes": ["[mobilecode]", "@MobileCode"],
+    "stripTriggerPrefix": true,
+    "replyMode": "dry-run",
+    "replyInThread": true,
+    "ignoreSenderIds": []
+  },
+  "harvis": {
+    "baseUrl": "http://127.0.0.1:8765",
+    "workspaceRoot": "/path/to/harvis-workspace",
+    "tokenEnv": "HARVIS_HTTP_TOKEN",
+    "tokenFile": "",
+    "timeoutMs": 5000,
+    "routes": {
+      "routerMessage": "/router/message",
+      "agentRoomMessage": "/agent-room/message",
+      "taskStatus": "/agent-room/task/status"
+    }
+  },
+  "mobilecode": {
+    "agentId": "agent:mobilecode",
+    "acceptedTypes": ["mobilecode.evidence.v1"],
+    "evidenceReplyTemplate": "MobileCode evidence received: {status}. {summary} Next: {next_action}"
+  },
+  "state": {
+    "file": ".lark-relay/state.json",
+    "evidenceDir": ".lark-relay/evidence",
+    "maxProcessedEvents": 1000
+  },
+  "safety": {
+    "allowLiveReplies": false,
+    "redactLocalPaths": true,
+    "requireKnownChat": true,
+    "dryRunHarvis": false
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "name": "@harzva/lark-relay",
+  "version": "0.1.0",
+  "description": "No-public-IP Lark relay for routing MobileCode and agent messages into local Harvis runtimes.",
+  "type": "module",
+  "bin": {
+    "lark-relay": "./src/cli.js"
+  },
+  "files": [
+    "src",
+    "examples",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "check": "node --check src/cli.js && node --check src/config.js && node --check src/harvis.js && node --check src/lark.js && node --check src/payloads.js && node --check src/relay.js",
+    "test": "node --test",
+    "smoke": "node ./src/cli.js --help && node ./src/cli.js init --config ./.tmp/lark-relay.config.json --force && node ./src/cli.js check --config ./.tmp/lark-relay.config.json",
+    "prepublishOnly": "npm run check && npm test"
+  },
+  "keywords": [
+    "lark",
+    "feishu",
+    "relay",
+    "harvis",
+    "mobilecode",
+    "agent",
+    "agentos",
+    "no-public-ip"
+  ],
+  "author": "Harzva",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Harzva/lark-relay.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Harzva/lark-relay/issues"
+  },
+  "homepage": "https://github.com/Harzva/lark-relay#readme",
+  "publishConfig": {
+    "access": "public"
+  }
+}

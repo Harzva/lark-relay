@@ -1,0 +1,13 @@
+[Unit]
+Description=Lark Relay for Harvis and MobileCode
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/env lark-relay run --config %h/.config/lark-relay/config.json
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=default.target

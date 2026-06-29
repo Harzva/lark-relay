@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { buildAgentRoomProjection } from "./agent-room.js";
 import { ConfigError, loadConfig, writeDefaultConfig } from "./config.js";
-import { doctorLarkCli } from "./lark.js";
+import { doctorLarkCli, sendMessage } from "./lark.js";
 import { Relay } from "./relay.js";
 
 const VERSION = "0.1.0";
@@ -24,6 +24,7 @@ async function main(argv) {
   if (command === "doctor-lark") return doctorLarkCommand(args);
   if (command === "render-agent-room") return renderAgentRoomCommand(args);
   if (command === "route-file") return routeFileCommand(args);
+  if (command === "p1-smoke") return p1SmokeCommand(args);
   if (command === "run") return runCommand(args);
   throw new Error(`Unknown command: ${command}`);
 }
@@ -107,6 +108,73 @@ async function runCommand(args) {
   return 0;
 }
 
+async function p1SmokeCommand(args) {
+  const options = parseOptions(args);
+  const { config, path } = await loadConfig(options.config || "lark-relay.config.json");
+  const doctor = await doctorLarkCli(config, { checkChats: true });
+  const payload = buildP1SmokePayload(options);
+  const prefix = config.lark.triggerPrefixes?.[0] || "[mobilecode]";
+  const text = `${prefix} ${JSON.stringify(payload)}`;
+  const wantsLiveSend = options.send === true;
+  if (wantsLiveSend && options.yes !== true) {
+    throw new Error("p1-smoke --send requires --yes after explicit human approval.");
+  }
+  const dryRun = !wantsLiveSend;
+  const sendResult = doctor.chatVisibility?.readyForLiveSmoke
+    ? await sendMessage(config, {
+        text,
+        idempotencyKey: String(options["idempotency-key"] || "p1-live-smoke-001"),
+        dryRun
+      })
+    : null;
+  const report = {
+    ok: Boolean(doctor.ok && doctor.chatVisibility?.readyForLiveSmoke && (sendResult?.ok ?? false)),
+    config: path,
+    mode: dryRun ? "dry-run" : "live-send",
+    lark: {
+      identity: config.lark.identity,
+      profile: config.lark.profile || null,
+      readyForLiveSmoke: Boolean(doctor.chatVisibility?.readyForLiveSmoke),
+      visibleChatCount: doctor.chatVisibility?.visibleChatCount || 0,
+      matchedTargetChatCount: doctor.chatVisibility?.matchedTargetChatCount || 0
+    },
+    payload,
+    messageText: text,
+    sendResult: sanitizeLarkSendResult(sendResult, config)
+  };
+  console.log(JSON.stringify(report, null, 2));
+  return report.ok ? 0 : 1;
+}
+
+function buildP1SmokePayload(options) {
+  return {
+    type: "mobilecode.status.v1",
+    task_id: String(options["task-id"] || "p1_live_smoke_001"),
+    state: String(options.state || "running"),
+    phase: String(options.phase || "project_check"),
+    summary: String(options.summary || "P1 live Lark smoke from lark-relay."),
+    updated_at: String(options["updated-at"] || new Date().toISOString())
+  };
+}
+
+function sanitizeLarkSendResult(result, config) {
+  if (!result) return null;
+  return {
+    command: redactLarkTargets(result.command, config),
+    ok: result.ok,
+    code: result.code,
+    stdout: redactLarkTargets(result.stdout || "", config),
+    stderr: redactLarkTargets(result.stderr || "", config)
+  };
+}
+
+function redactLarkTargets(value, config) {
+  const targets = config.lark.targetChatIds || [];
+  if (Array.isArray(value)) return value.map((item) => redactLarkTargets(item, config));
+  if (typeof value !== "string") return value;
+  return targets.reduce((output, target) => output.split(target).join("[target-chat]"), value);
+}
+
 function parseOptions(args) {
   const options = {};
   for (let index = 0; index < args.length; index += 1) {
@@ -117,7 +185,7 @@ function parseOptions(args) {
       continue;
     }
     const key = arg.slice(2);
-    if (key === "force" || key === "once" || key === "no-reply") {
+    if (key === "force" || key === "once" || key === "no-reply" || key === "send" || key === "yes") {
       options[key === "no-reply" ? "reply" : key] = key === "no-reply" ? false : true;
       continue;
     }
@@ -143,6 +211,7 @@ Usage:
   lark-relay doctor-lark [--config lark-relay.config.json] [--check-chats]
   lark-relay render-agent-room --file payload.json [--config lark-relay.config.json]
   lark-relay route-file --file event.json [--config lark-relay.config.json] [--no-reply]
+  lark-relay p1-smoke [--config lark-relay.config.json] [--send --yes]
   lark-relay run [--config lark-relay.config.json] [--once] [--max-events 1] [--timeout 2m]
 
 Install:

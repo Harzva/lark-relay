@@ -88,13 +88,27 @@ mode.
 
 ## 5. Run One Live Event
 
+Preview the smoke message first. This does not send a message:
+
+```bash
+lark-relay p1-smoke --config lark-relay.config.json
+```
+
+After explicit human approval, either let the relay send the smoke message:
+
 In terminal 1:
 
 ```bash
 lark-relay run --config lark-relay.config.json --once --max-events 1 --timeout 2m
 ```
 
-In the configured Lark chat, send:
+In terminal 2:
+
+```bash
+lark-relay p1-smoke --config lark-relay.config.json --send --yes
+```
+
+Or send the message manually in the configured Lark chat:
 
 ```text
 [mobilecode] {"type":"mobilecode.status.v1","task_id":"bringup_1","state":"running","phase":"project_check","summary":"Lark CLI and lark-relay bring-up smoke passed.","updated_at":"2026-06-29T00:00:00.000Z"}

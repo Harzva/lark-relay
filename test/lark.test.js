@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DEFAULT_CONFIG, mergeConfig } from "../src/config.js";
-import { buildConsumeArgs, doctorLarkCli, extractChatIds } from "../src/lark.js";
+import {
+  buildConsumeArgs,
+  buildSendMessageArgs,
+  doctorLarkCli,
+  extractChatIds
+} from "../src/lark.js";
 
 test("builds persistent Lark event consumer args by default", () => {
   const config = mergeConfig(DEFAULT_CONFIG, {
@@ -44,6 +49,54 @@ test("builds bounded Lark event consumer args for smoke runs", () => {
     "--timeout",
     "2m"
   ]);
+});
+
+test("builds P1 smoke send args as dry-run by default", () => {
+  const config = mergeConfig(DEFAULT_CONFIG, {
+    lark: {
+      profile: "mobilecode",
+      identity: "bot",
+      targetChatIds: ["oc_1"]
+    }
+  });
+
+  assert.deepEqual(
+    buildSendMessageArgs(config, {
+      text: "[mobilecode] {}",
+      idempotencyKey: "p1-smoke"
+    }),
+    [
+      "--profile",
+      "mobilecode",
+      "im",
+      "+messages-send",
+      "--as",
+      "bot",
+      "--chat-id",
+      "oc_1",
+      "--text",
+      "[mobilecode] {}",
+      "--idempotency-key",
+      "p1-smoke",
+      "--format",
+      "json",
+      "--dry-run"
+    ]
+  );
+});
+
+test("builds live P1 smoke send args only when dryRun is false", () => {
+  const config = mergeConfig(DEFAULT_CONFIG, {
+    lark: { targetChatIds: ["oc_1"] }
+  });
+
+  const args = buildSendMessageArgs(config, {
+    text: "[mobilecode] {}",
+    idempotencyKey: "p1-smoke",
+    dryRun: false
+  });
+
+  assert.equal(args.includes("--dry-run"), false);
 });
 
 test("doctorLarkCli verifies local command surfaces without sending messages", async () => {

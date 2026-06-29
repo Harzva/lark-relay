@@ -32,6 +32,32 @@ export function buildReplyArgs(config, { messageId, text, idempotencyKey = rando
   return args;
 }
 
+export function buildSendMessageArgs(
+  config,
+  { text, idempotencyKey = randomUUID(), dryRun = true } = {}
+) {
+  const chatId = config.lark.targetChatIds?.[0];
+  if (!chatId) throw new Error("lark.targetChatIds must contain one chat for send.");
+  const args = [];
+  if (config.lark.profile) args.push("--profile", config.lark.profile);
+  args.push(
+    "im",
+    "+messages-send",
+    "--as",
+    config.lark.identity,
+    "--chat-id",
+    chatId,
+    "--text",
+    text,
+    "--idempotency-key",
+    idempotencyKey,
+    "--format",
+    "json"
+  );
+  if (dryRun) args.push("--dry-run");
+  return args;
+}
+
 export function spawnEventConsumer(config, handlers, options = {}) {
   const args = buildConsumeArgs(config, options);
   const child = spawn(config.lark.cliBin, args, {
@@ -64,6 +90,15 @@ export async function sendReply(config, { messageId, text, runner = runCommand }
   return { command: [config.lark.cliBin, ...args], ...result };
 }
 
+export async function sendMessage(
+  config,
+  { text, idempotencyKey, dryRun = true, runner = runCommand }
+) {
+  const args = buildSendMessageArgs(config, { text, idempotencyKey, dryRun });
+  const result = await runner(config.lark.cliBin, args);
+  return { command: [config.lark.cliBin, ...args], ...result };
+}
+
 export async function doctorLarkCli(config, { runner = runCommand, checkChats = false } = {}) {
   const checks = [];
   const runCheck = async (name, args) => {
@@ -73,8 +108,8 @@ export async function doctorLarkCli(config, { runner = runCommand, checkChats = 
       ok: result.ok,
       code: result.code,
       command: [config.lark.cliBin, ...args],
-        error: result.ok ? null : summarizeError(result.stderr || result.stdout)
-      });
+      error: result.ok ? null : summarizeError(result.stderr || result.stdout)
+    });
     return result;
   };
 

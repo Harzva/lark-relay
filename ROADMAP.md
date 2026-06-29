@@ -23,7 +23,7 @@
   - Evidence: `npm run check`、`npm test`、`npm run smoke`、`npm pack --dry-run` 已通过；GitHub Actions CI 成功。
 - [x] 当前已支持 `MobileCode/Lark -> lark-relay -> Harvis localhost API` 的入站方向。
   - Evidence: 已实现 `mobilecode.evidence.v1` payload 解析、聊天白名单、事件去重、Harvis route-file 测试。
-- [ ] 尚未完成 `Harvis -> lark-relay -> MobileCode worker` 的反向执行闭环。
+- [ ] 尚未完成 `Harvis -> lark-relay -> 现有 MobileCode` 的轻量接入闭环。
 - [ ] 尚未完成真实 Lark profile、真实 chat id、真实 Harvis API 的端到端 live 验证。
 - [ ] 尚未发布 npm registry 包；当前可通过 GitHub npx 方式运行。
 
@@ -81,27 +81,39 @@
 - 风险：回传消息导致触发循环或刷屏
 - 对策：配置最小权限触发、路由白名单、速率限制与去重
 
-## 阶段 3：MobileCode Worker 反向执行闭环
+## 阶段 3：MobileCode 轻量接入闭环
 
 ### 目标
-让 Harvis 不只是“收到 MobileCode 结果”，还可以通过受控协议派发任务给 MobileCode 执行。
+让 Harvis 不只是“收到 MobileCode 结果”，还可以通过受控协议把任务交给已有 MobileCode 执行。
+
+本阶段只做接入，不搬运、不复刻、不重写 MobileCode 的核心能力。
+`lark-relay` 负责消息、路由、鉴权、幂等、回执与证据格式；MobileCode 继续负责移动端执行能力。
+
+### 非目标
+- 不把 MobileCode 全量搬进 `lark-relay`。
+- 不在 `lark-relay` 内实现手机控制、模型推理、App QA 或 GitHub/文档交付能力。
+- 不维护第二套 MobileCode 调度器；只维护协议转换与回执链路。
 
 ### 工作项
-- 定义 `mobilecode.command.v1`：任务类型、输入、权限、超时、回执、证据字段。
-- 新增 `mobilecode-worker` 运行形态：
-  - 从 Lark 或本地队列接收 Harvis 派发任务。
-  - 执行手机 QA、移动网页检查、教程生成、GitHub 交付等受控任务。
-  - 把执行状态与证据回传为 `mobilecode.evidence.v1`。
+- 盘点 MobileCode 已有入口：CLI、HTTP、本地脚本、队列或现有 agent mail/Lark 接口。
+- 定义最小 `mobilecode.command.v1`：任务类型、输入、权限、超时、回执、证据字段。
+- 新增薄 adapter，而不是新 runtime：
+  - 把 Harvis 任务转换为 MobileCode 已支持的输入格式。
+  - 把 MobileCode 输出归一化为 `mobilecode.evidence.v1`。
+  - 保留 MobileCode 自己的执行、模型、手机控制、GitHub/文档能力。
 - 在 Harvis 侧建立任务状态机：`queued -> accepted -> running -> needs_human -> completed/failed`。
 - 增加人工批准点：高风险动作如发布、提交、删除、账号操作必须先进入批准流。
 
 ### 交付标准
-- Harvis 创建一个 MobileCode 任务后，MobileCode worker 可领取并返回状态。
+- Harvis 创建一个 MobileCode 任务后，已有 MobileCode 能接收并返回状态。
 - 完成任务必须产生证据：日志、截图、链接、提交 SHA 或文档地址之一。
 - 失败任务必须给出可行动错误：原因、下一步、是否可重试。
+- `lark-relay` 不包含手机控制实现、不复制 MobileCode 内部 agent、不重写 MobileCode 调度器。
 
 ### 风险与对策
-- 风险：把 MobileCode 做成任意远程执行器。
+- 风险：把 `lark-relay` 做成第二套 MobileCode，导致维护两套执行器。
+- 对策：只实现协议 adapter；所有移动端执行能力留在 MobileCode 仓库或已有运行时。
+- 风险：把 MobileCode 暴露成任意远程执行器。
 - 对策：只允许白名单 task type；禁止 Lark 文本直接变 shell；所有执行动作必须有结构化 payload 与审计记录。
 
 ## 阶段 4：可靠性与安全增强（SLA 阶段）
@@ -160,6 +172,6 @@
 
 - M0：完成阶段 0 与阶段 1（本路线图冻结与协议收敛）
 - M1：完成阶段 2（Harvis 回流 Lark 可用）
-- M2：完成阶段 3（Harvis 调 MobileCode worker 可用）
+- M2：完成阶段 3（Harvis 轻量接入已有 MobileCode 可用）
 - M3：完成阶段 4（可靠性与安全增强）
 - M4：完成阶段 5（治理与规模化运行）

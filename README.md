@@ -65,6 +65,11 @@ npm test
 Harvis can remain localhost-only. No public domain, webhook tunnel, router port
 forwarding, or phone-to-Mac direct connection is required.
 
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for the MobileCode + Harvis bidirectional roadmap,
+including git commit governance and `cxsaprk`/`cxspark` assisted execution rules.
+
 ## Quick Start
 
 Create a config:

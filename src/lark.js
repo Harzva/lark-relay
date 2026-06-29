@@ -64,7 +64,7 @@ export async function sendReply(config, { messageId, text, runner = runCommand }
   return { command: [config.lark.cliBin, ...args], ...result };
 }
 
-export async function doctorLarkCli(config, { runner = runCommand } = {}) {
+export async function doctorLarkCli(config, { runner = runCommand, checkChats = false } = {}) {
   const checks = [];
   const runCheck = async (name, args) => {
     const result = await runner(config.lark.cliBin, args);
@@ -73,8 +73,9 @@ export async function doctorLarkCli(config, { runner = runCommand } = {}) {
       ok: result.ok,
       code: result.code,
       command: [config.lark.cliBin, ...args],
-      error: result.ok ? null : summarizeError(result.stderr || result.stdout)
-    });
+        error: result.ok ? null : summarizeError(result.stderr || result.stdout)
+      });
+    return result;
   };
 
   await runCheck("lark_cli_version", ["--version"]);
@@ -86,13 +87,87 @@ export async function doctorLarkCli(config, { runner = runCommand } = {}) {
   schemaArgs.push("event", "schema", config.lark.eventKey, "--json");
   await runCheck("event_schema", schemaArgs);
 
+  const chatVisibility = checkChats
+    ? await checkChatVisibility(config, runCheck)
+    : null;
+
   return {
     ok: checks.every((check) => check.ok),
     eventKey: config.lark.eventKey,
     identity: config.lark.identity,
     profile: config.lark.profile || null,
+    chatVisibility,
     checks
   };
+}
+
+async function checkChatVisibility(config, runCheck) {
+  const args = [];
+  if (config.lark.profile) args.push("--profile", config.lark.profile);
+  args.push(
+    "im",
+    "+chat-list",
+    "--as",
+    config.lark.identity,
+    "--page-size",
+    "100",
+    "--format",
+    "json"
+  );
+  const result = await runCheck("im_chat_list", args);
+  const chatIds = result.ok ? extractChatIds(result.stdout) : [];
+  const visibleChatIds = new Set(chatIds);
+  const targetChatIds = config.lark.targetChatIds || [];
+  const hasPlaceholderTarget = targetChatIds.some(isPlaceholderChatId);
+  const matchedTargetChatCount = targetChatIds.filter((chatId) =>
+    visibleChatIds.has(chatId)
+  ).length;
+
+  return {
+    ok: result.ok,
+    visibleChatCount: visibleChatIds.size,
+    configuredTargetChatCount: targetChatIds.length,
+    matchedTargetChatCount,
+    hasPlaceholderTarget,
+    readyForLiveSmoke:
+      result.ok &&
+      visibleChatIds.size > 0 &&
+      targetChatIds.length > 0 &&
+      matchedTargetChatCount > 0 &&
+      !hasPlaceholderTarget
+  };
+}
+
+export function extractChatIds(stdout = "") {
+  let parsed;
+  try {
+    parsed = JSON.parse(stdout);
+  } catch {
+    return [];
+  }
+  return extractChatItems(parsed)
+    .map((chat) => chat?.chat_id || chat?.chatId || chat?.id)
+    .filter((chatId) => typeof chatId === "string" && chatId.startsWith("oc_"));
+}
+
+function extractChatItems(value) {
+  if (Array.isArray(value)) return value;
+  if (!value || typeof value !== "object") return [];
+  for (const key of ["chats", "items", "data"]) {
+    const nested = value[key];
+    if (Array.isArray(nested)) return nested;
+    const nestedItems = extractChatItems(nested);
+    if (nestedItems.length) return nestedItems;
+  }
+  return [];
+}
+
+function isPlaceholderChatId(chatId) {
+  return (
+    typeof chatId !== "string" ||
+    chatId.trim() === "" ||
+    /REPLACE|your_chat_id|example/i.test(chatId)
+  );
 }
 
 function summarizeError(value = "") {

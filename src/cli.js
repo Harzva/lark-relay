@@ -63,7 +63,9 @@ async function checkCommand(args) {
 async function doctorLarkCommand(args) {
   const options = parseOptions(args);
   const { config, path } = await loadConfig(options.config || "lark-relay.config.json");
-  const report = await doctorLarkCli(config);
+  const report = await doctorLarkCli(config, {
+    checkChats: options.checkChats === true || options["check-chats"] === true
+  });
   console.log(JSON.stringify({ ...report, config: path }, null, 2));
   return report.ok ? 0 : 1;
 }
@@ -138,7 +140,7 @@ No-public-IP Lark relay for MobileCode, Harvis, and local agent runtimes.
 Usage:
   lark-relay init [--config lark-relay.config.json] [--force]
   lark-relay check [--config lark-relay.config.json]
-  lark-relay doctor-lark [--config lark-relay.config.json]
+  lark-relay doctor-lark [--config lark-relay.config.json] [--check-chats]
   lark-relay render-agent-room --file payload.json [--config lark-relay.config.json]
   lark-relay route-file --file event.json [--config lark-relay.config.json] [--no-reply]
   lark-relay run [--config lark-relay.config.json] [--once] [--max-events 1] [--timeout 2m]

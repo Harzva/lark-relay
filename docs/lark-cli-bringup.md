@@ -63,14 +63,28 @@ private secret manager.
 ```bash
 lark-relay check --config lark-relay.config.json
 lark-relay doctor-lark --config lark-relay.config.json
+lark-relay doctor-lark --config lark-relay.config.json --check-chats
 lark-relay route-file \
   --config lark-relay.config.json \
-  --file examples/mobilecode-evidence-event.json \
+  --file examples/mobilecode-status-event.json \
   --no-reply
 ```
 
 `doctor-lark` verifies local command surfaces and event schema. It does not send
 messages and does not consume live events.
+
+`--check-chats` additionally runs a read-only `im +chat-list` check under the
+configured Lark identity. It reports counts only:
+
+- `visibleChatCount`: chats visible to the current user or bot identity.
+- `configuredTargetChatCount`: entries in `lark.targetChatIds`.
+- `matchedTargetChatCount`: configured targets that are visible to the identity.
+- `hasPlaceholderTarget`: whether the config still contains example chat IDs.
+- `readyForLiveSmoke`: true only when at least one configured target is visible.
+
+If `visibleChatCount` or `matchedTargetChatCount` is `0`, add the bot to a
+dedicated test chat and update `lark.targetChatIds` before running live relay
+mode.
 
 ## 5. Run One Live Event
 
@@ -83,7 +97,7 @@ lark-relay run --config lark-relay.config.json --once --max-events 1 --timeout 2
 In the configured Lark chat, send:
 
 ```text
-[mobilecode] {"type":"mobilecode.evidence.v1","task_id":"bringup_1","status":"verified","summary":"Lark CLI and lark-relay bring-up smoke passed.","next_action":"connect_harvis_live"}
+[mobilecode] {"type":"mobilecode.status.v1","task_id":"bringup_1","state":"running","phase":"project_check","summary":"Lark CLI and lark-relay bring-up smoke passed.","updated_at":"2026-06-29T00:00:00.000Z"}
 ```
 
 Expected result:

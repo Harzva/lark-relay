@@ -98,14 +98,19 @@ Check the config:
 ```bash
 lark-relay check --config ~/.config/lark-relay/config.json
 lark-relay doctor-lark --config ~/.config/lark-relay/config.json
+lark-relay doctor-lark --config ~/.config/lark-relay/config.json --check-chats
 ```
+
+`--check-chats` is read-only. It reports whether the configured bot/user can see
+any chats and whether `lark.targetChatIds` matches a visible chat, without
+printing chat names or chat lists.
 
 Run one local fixture without replying to Lark:
 
 ```bash
 lark-relay route-file \
   --config ~/.config/lark-relay/config.json \
-  --file examples/mobilecode-evidence-event.json \
+  --file examples/mobilecode-status-event.json \
   --no-reply
 ```
 
@@ -121,25 +126,23 @@ Send this to the configured Lark chat with the configured trigger prefix:
 
 ```json
 {
-  "type": "mobilecode.evidence.v1",
+  "type": "mobilecode.status.v1",
   "task_id": "mc_123",
-  "status": "verified",
-  "summary": "Phone preview passed.",
-  "evidence": [
-    {
-      "kind": "screenshot",
-      "url": "lark://file/xxx"
-    }
-  ],
-  "next_action": "ready_for_publish"
+  "state": "running",
+  "phase": "project_check",
+  "summary": "MobileCode read-only status bridge is alive.",
+  "updated_at": "2026-06-29T00:00:00.000Z"
 }
 ```
 
 With the default prefix:
 
 ```text
-[mobilecode] {"type":"mobilecode.evidence.v1","task_id":"mc_123","status":"verified","summary":"Phone preview passed.","next_action":"ready_for_publish"}
+[mobilecode] {"type":"mobilecode.status.v1","task_id":"mc_123","state":"running","phase":"project_check","summary":"MobileCode read-only status bridge is alive.","updated_at":"2026-06-29T00:00:00.000Z"}
 ```
+
+The relay also accepts `mobilecode.action_evidence.v1` and the earlier
+`mobilecode.evidence.v1` payload for compatibility.
 
 ## Safety Model
 

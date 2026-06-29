@@ -139,6 +139,19 @@ Example:
 The full fixture is
 `examples/harvis-mobilecode-task.project_check.json`.
 
+Preview the handoff transport without sending a Lark message:
+
+```bash
+lark-relay handoff-file \
+  --config examples/lark-relay.p1-dry-run.config.json \
+  --file examples/harvis-mobilecode-task.project_check.json
+```
+
+The command validates the approval gate before constructing a
+`mobilecode.handoff.v1` transport payload. It refuses missing approval ids,
+unsupported actions, and any P2 task that requires a phone, emulator, or
+simulator.
+
 ## Status Export
 
 MobileCode exports `mobilecode.status.v1` so Harvis can render a read-only task

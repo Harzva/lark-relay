@@ -16,7 +16,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "check": "node --check src/agent-room.js && node --check src/cli.js && node --check src/config.js && node --check src/harvis.js && node --check src/lark.js && node --check src/payloads.js && node --check src/relay.js",
+    "check": "node --check src/agent-room.js && node --check src/cli.js && node --check src/config.js && node --check src/handoff.js && node --check src/harvis.js && node --check src/lark.js && node --check src/payloads.js && node --check src/relay.js",
     "test": "node --test",
     "smoke": "node ./src/cli.js --help && node ./src/cli.js init --config ./.tmp/lark-relay.config.json --force && node ./src/cli.js check --config ./.tmp/lark-relay.config.json",
     "prepublishOnly": "npm run check && npm test"

@@ -24,7 +24,7 @@
 - [x] 当前已支持 `MobileCode/Lark -> lark-relay -> Harvis localhost API` 的入站方向。
   - Evidence: 已实现 `mobilecode.evidence.v1` payload 解析、聊天白名单、事件去重、Harvis route-file 测试。
 - [ ] 尚未完成 `Harvis -> lark-relay -> 现有 MobileCode` 的轻量接入闭环。
-- [ ] 尚未完成真实 Lark profile、真实 chat id、真实 Harvis API 的端到端 live 验证。
+- [x] 已完成真实 Lark profile、真实 chat id、真实 Harvis API 的端到端 P1 live 验证。
 - [ ] 尚未发布 npm registry 包；当前可通过 GitHub npx 方式运行。
 
 ## 当前执行顺序
@@ -33,9 +33,10 @@
   - Evidence: `docs/harvis-mobilecode-integration.md`、`schemas/mobilecode-harvis-task.schema.json`、`examples/harvis-mobilecode-task.project_check.json`、`examples/mobilecode-status.readonly.json`、`examples/mobilecode-action-evidence.project_check.json`。
 - [x] P1：只读状态桥。MobileCode 导出 status/evidence JSON，Harvis 在 Agent Room 只读展示。
   - Evidence: lark-relay commit `a7ab9a2` adds `render-agent-room`, Agent Room projection, status/action evidence schemas, and fixture route tests. MobileCode commit `844b9c4` adds `HarvisMobileCodeBridgeService` for read-only `mobilecode.status.v1` and `mobilecode.action_evidence.v1` export.
-- [ ] P1 smoke：真实 Lark 消息进入 `lark-relay`，reply 保持 dry-run。
-  - Current evidence: fixture smoke passed with `examples/lark-relay.p1-dry-run.config.json` and `examples/mobilecode-status-event.json`; `lark-cli` profiles currently report 0 bot-visible chats, so a real chat id / bot membership is still needed before live Lark smoke.
+- [x] P1 smoke：真实 Lark 消息进入 `lark-relay`，reply 保持 dry-run。
+  - Evidence: dedicated Lark test chat live smoke routed `mobilecode.status.v1` into Harvis Router, Agent Room message, task create, and task status with Lark reply dry-run.
 - [ ] P2：单个 approval-gated handoff。只支持 `project_check` 或 `validate`。
+  - Current focus: `handoff-file` validates approved Harvis task envelopes and prepares MobileCode handoff transport payloads.
 - [ ] P3：接 GitHub Pages / Actions / mobile smoke evidence；需要安卓部署时使用 Android emulator 测试。
 
 ## 阶段 0：治理与基线（已启动）

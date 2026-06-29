@@ -127,6 +127,19 @@ explicit human approval, run it with `--send --yes`. For group receive-event
 smokes, use `--send-as user --mention-all` in a dedicated test chat so the bot
 receives a real Lark event.
 
+Preview a P2 approval-gated handoff without sending it:
+
+```bash
+lark-relay handoff-file \
+  --config ~/.config/lark-relay/config.json \
+  --file examples/harvis-mobilecode-task.project_check.json
+```
+
+`handoff-file` only accepts `mobilecode.harvis.task.v1` envelopes for
+`project_check` or `validate`, requires an `approval_id`, rejects device-required
+tasks, and defaults to Lark dry-run. MobileCode writes results back as
+`mobilecode.action_evidence.v1`.
+
 Start the relay:
 
 ```bash

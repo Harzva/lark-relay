@@ -99,6 +99,29 @@ The first supported approval-gated actions are:
 - `project_check`
 - `validate`
 
+The relay can validate and send a P2 handoff with:
+
+```bash
+lark-relay handoff-file \
+  --config lark-relay.config.json \
+  --file examples/harvis-mobilecode-task.project_check.json
+```
+
+Safety gates:
+
+- `handoff.mode` must be `approval_gated_action`.
+- `handoff.requires_approval` must be `true`.
+- `handoff.approval_id` must be present.
+- `task.kind` and `handoff.allowed_actions` are limited to `project_check` and
+  `validate`.
+- P2 handoffs cannot require a phone, emulator, or simulator.
+- The evidence contract must include `mobilecode.action_evidence.v1`.
+
+The command sends a `mobilecode.handoff.v1` transport payload to Lark. It
+defaults to dry-run and requires `--send --yes` for a live Lark message.
+MobileCode writes results back as `mobilecode.action_evidence.v1`, which the
+relay routes into Harvis Agent Room and task status.
+
 See [harvis-mobilecode-integration.md](harvis-mobilecode-integration.md) for the
 P0 fixtures and the Agent Room mapping.
 

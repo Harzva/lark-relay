@@ -4,6 +4,12 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { buildAgentRoomProjection } from "./agent-room.js";
 import { ConfigError, loadConfig, writeDefaultConfig } from "./config.js";
+import {
+  buildMobileCodeHandoffMessage,
+  buildMobileCodeHandoffPayload,
+  HandoffError,
+  validateMobileCodeHandoff
+} from "./handoff.js";
 import { doctorLarkCli, sendMessage } from "./lark.js";
 import { Relay } from "./relay.js";
 
@@ -25,6 +31,7 @@ async function main(argv) {
   if (command === "render-agent-room") return renderAgentRoomCommand(args);
   if (command === "route-file") return routeFileCommand(args);
   if (command === "p1-smoke") return p1SmokeCommand(args);
+  if (command === "handoff-file") return handoffFileCommand(args);
   if (command === "run") return runCommand(args);
   throw new Error(`Unknown command: ${command}`);
 }
@@ -150,6 +157,40 @@ async function p1SmokeCommand(args) {
   return report.ok ? 0 : 1;
 }
 
+async function handoffFileCommand(args) {
+  const options = parseOptions(args);
+  if (!options.file) throw new Error("handoff-file requires --file <task.json>");
+  const { config, path } = await loadConfig(options.config || "lark-relay.config.json");
+  const raw = await readFile(resolve(options.file), "utf8");
+  const envelope = JSON.parse(raw);
+  const gate = validateMobileCodeHandoff(envelope);
+  const payload = buildMobileCodeHandoffPayload(envelope);
+  const text = buildMobileCodeHandoffMessage(envelope, {
+    prefix: String(options.prefix || "[mobilecode-handoff]")
+  });
+  const wantsLiveSend = options.send === true;
+  if (wantsLiveSend && options.yes !== true) {
+    throw new Error("handoff-file --send requires --yes after approval is recorded.");
+  }
+  const sendResult = await sendMessage(config, {
+    text,
+    idempotencyKey: String(options["idempotency-key"] || `handoff-${gate.taskId}`),
+    dryRun: !wantsLiveSend,
+    identity: String(options["send-as"] || config.lark.identity)
+  });
+  const report = {
+    ok: sendResult.ok,
+    config: path,
+    mode: wantsLiveSend ? "live-send" : "dry-run",
+    gate,
+    payload,
+    messageText: text,
+    sendResult: sanitizeLarkSendResult(sendResult, config)
+  };
+  console.log(JSON.stringify(report, null, 2));
+  return report.ok ? 0 : 1;
+}
+
 function buildP1SmokePayload(options) {
   return {
     type: "mobilecode.status.v1",
@@ -223,6 +264,7 @@ Usage:
   lark-relay render-agent-room --file payload.json [--config lark-relay.config.json]
   lark-relay route-file --file event.json [--config lark-relay.config.json] [--no-reply]
   lark-relay p1-smoke [--config lark-relay.config.json] [--send --yes] [--send-as user] [--mention-all]
+  lark-relay handoff-file --file task.json [--config lark-relay.config.json] [--send --yes]
   lark-relay run [--config lark-relay.config.json] [--once] [--max-events 1] [--timeout 2m]
 
 Install:
@@ -246,6 +288,12 @@ main(process.argv.slice(2))
   })
   .catch((error) => {
     if (error instanceof ConfigError) {
+      console.error(error.message);
+      for (const detail of error.details) console.error(`- ${detail}`);
+      process.exitCode = 2;
+      return;
+    }
+    if (error instanceof HandoffError) {
       console.error(error.message);
       for (const detail of error.details) console.error(`- ${detail}`);
       process.exitCode = 2;

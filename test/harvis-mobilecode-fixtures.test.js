@@ -17,6 +17,15 @@ test("Harvis MobileCode task schema constrains P0/P2 handoff actions", async () 
   assert.equal(schema.properties.target.properties.runtime.const, "mobilecode");
 });
 
+test("MobileCode read-only export schemas define P1 payload types", async () => {
+  const statusSchema = await readJson("schemas/mobilecode-status.schema.json");
+  const actionEvidenceSchema = await readJson("schemas/mobilecode-action-evidence.schema.json");
+
+  assert.equal(statusSchema.properties.type.const, "mobilecode.status.v1");
+  assert.equal(actionEvidenceSchema.properties.type.const, "mobilecode.action_evidence.v1");
+  assert.deepEqual(actionEvidenceSchema.properties.action.enum, ["project_check", "validate"]);
+});
+
 test("P0 fixtures share task and correlation identifiers", async () => {
   const task = await readJson("examples/harvis-mobilecode-task.project_check.json");
   const status = await readJson("examples/mobilecode-status.readonly.json");

@@ -157,6 +157,7 @@ With the default prefix:
 lark-relay init
 lark-relay check
 lark-relay doctor-lark
+lark-relay render-agent-room --file examples/mobilecode-status.readonly.json
 lark-relay route-file --file event.json
 lark-relay run
 ```

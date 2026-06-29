@@ -2,7 +2,7 @@
   "schemaVersion": "lark-relay.config.v1",
   "lark": {
     "cliBin": "lark-cli",
-    "profile": "harvis-mobilecode-bot",
+    "profile": "",
     "identity": "bot",
     "eventKey": "im.message.receive_v1",
     "targetChatIds": ["oc_REPLACE_WITH_CHAT_ID"],
@@ -14,7 +14,7 @@
   },
   "harvis": {
     "baseUrl": "http://127.0.0.1:8765",
-    "workspaceRoot": "/path/to/harvis-workspace",
+    "workspaceRoot": "",
     "tokenEnv": "HARVIS_HTTP_TOKEN",
     "tokenFile": "",
     "timeoutMs": 5000,
@@ -34,14 +34,14 @@
     "evidenceReplyTemplate": "MobileCode evidence received: {status}. {summary} Next: {next_action}"
   },
   "state": {
-    "file": ".lark-relay/state.json",
-    "evidenceDir": ".lark-relay/evidence",
+    "file": ".tmp/p1-state.json",
+    "evidenceDir": ".tmp/p1-evidence",
     "maxProcessedEvents": 1000
   },
   "safety": {
     "allowLiveReplies": false,
     "redactLocalPaths": true,
     "requireKnownChat": true,
-    "dryRunHarvis": false
+    "dryRunHarvis": true
   }
 }

@@ -88,3 +88,50 @@ test("deduplicates processed events", async () => {
     await rm(temp, { recursive: true, force: true });
   }
 });
+
+test("routes MobileCode status fixture from Lark event with dry-run reply", async () => {
+  const temp = await mkdtemp(join(tmpdir(), "lark-relay-p1-status-"));
+  try {
+    const calls = [];
+    const replies = [];
+    const config = mergeConfig(DEFAULT_CONFIG, {
+      lark: {
+        targetChatIds: ["oc_REPLACE_WITH_CHAT_ID"],
+        triggerPrefixes: ["[mobilecode]"],
+        replyMode: "dry-run"
+      },
+      state: {
+        file: join(temp, "state.json"),
+        evidenceDir: join(temp, "evidence")
+      }
+    });
+    const relay = new Relay(config, {
+      harvisClient: {
+        route: async (event, payload) => {
+          calls.push({ event, payload });
+          return {
+            routerMessage: { ok: true },
+            agentRoomMessage: { ok: true },
+            taskStatus: { ok: true }
+          };
+        }
+      },
+      replyRunner: async (command, args) => {
+        replies.push([command, ...args]);
+        return { ok: true, code: 0, stdout: "{}", stderr: "" };
+      }
+    });
+    await relay.loadState();
+
+    const event = JSON.parse(await readFile("examples/mobilecode-status-event.json", "utf8"));
+    const evidence = await relay.routeRawEvent(event);
+
+    assert.equal(evidence.failureKind, "none");
+    assert.equal(calls[0].payload.type, "mobilecode.status.v1");
+    assert.equal(calls[0].payload.state, "running");
+    assert.equal(replies.length, 1);
+    assert.equal(replies[0].includes("--dry-run"), true);
+  } finally {
+    await rm(temp, { recursive: true, force: true });
+  }
+});

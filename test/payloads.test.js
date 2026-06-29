@@ -50,6 +50,20 @@ test("parses MobileCode evidence payload", () => {
   assert.equal(payload.status, "verified");
 });
 
+test("parses MobileCode P1 read-only payloads", () => {
+  const status = parseRelayPayload(
+    '{"type":"mobilecode.status.v1","state":"running","phase":"project_check"}',
+    DEFAULT_CONFIG
+  );
+  const actionEvidence = parseRelayPayload(
+    '{"type":"mobilecode.action_evidence.v1","action":"project_check","status":"verified","summary":"ok"}',
+    DEFAULT_CONFIG
+  );
+
+  assert.equal(status.type, "mobilecode.status.v1");
+  assert.equal(actionEvidence.type, "mobilecode.action_evidence.v1");
+});
+
 test("redacts local paths", () => {
   const value = redact({ path: "/Users/example/private/file.txt" });
   assert.equal(value.path, "[local-path]");

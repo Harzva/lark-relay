@@ -2,6 +2,7 @@
 
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { buildAgentRoomProjection } from "./agent-room.js";
 import { ConfigError, loadConfig, writeDefaultConfig } from "./config.js";
 import { doctorLarkCli } from "./lark.js";
 import { Relay } from "./relay.js";
@@ -21,6 +22,7 @@ async function main(argv) {
   if (command === "init") return initCommand(args);
   if (command === "check") return checkCommand(args);
   if (command === "doctor-lark") return doctorLarkCommand(args);
+  if (command === "render-agent-room") return renderAgentRoomCommand(args);
   if (command === "route-file") return routeFileCommand(args);
   if (command === "run") return runCommand(args);
   throw new Error(`Unknown command: ${command}`);
@@ -79,6 +81,17 @@ async function routeFileCommand(args) {
   return evidence.failureKind === "none" || evidence.skipped ? 0 : 1;
 }
 
+async function renderAgentRoomCommand(args) {
+  const options = parseOptions(args);
+  if (!options.file) throw new Error("render-agent-room requires --file <payload.json>");
+  const { config } = await loadConfig(options.config || "lark-relay.config.json");
+  const raw = await readFile(resolve(options.file), "utf8");
+  const payload = JSON.parse(raw);
+  const projection = buildAgentRoomProjection(payload, config);
+  console.log(JSON.stringify(projection, null, 2));
+  return 0;
+}
+
 async function runCommand(args) {
   const options = parseOptions(args);
   const { config } = await loadConfig(options.config || "lark-relay.config.json");
@@ -126,6 +139,7 @@ Usage:
   lark-relay init [--config lark-relay.config.json] [--force]
   lark-relay check [--config lark-relay.config.json]
   lark-relay doctor-lark [--config lark-relay.config.json]
+  lark-relay render-agent-room --file payload.json [--config lark-relay.config.json]
   lark-relay route-file --file event.json [--config lark-relay.config.json] [--no-reply]
   lark-relay run [--config lark-relay.config.json] [--once] [--max-events 1] [--timeout 2m]
 

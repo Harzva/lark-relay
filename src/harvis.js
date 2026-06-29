@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { buildAgentRoomProjection, isMobileCodePayload } from "./agent-room.js";
 import { payloadToHarvisText, redact } from "./payloads.js";
 
 export class HarvisClient {
@@ -52,7 +53,8 @@ export class HarvisClient {
       )
     };
 
-    if (payload.type === "mobilecode.evidence.v1") {
+    if (isMobileCodePayload(payload)) {
+      const projection = buildAgentRoomProjection(payload, this.config, event);
       result.agentRoomMessage = await this.postRoute(
         this.config.harvis.routes.agentRoomMessage,
         {
@@ -60,21 +62,21 @@ export class HarvisClient {
           transport: "feishu",
           agent_id: this.config.mobilecode.agentId,
           role: "mobile-runtime",
-          content: text,
-          metadata
+          content: projection.message.content,
+          metadata: redact({ ...metadata, agent_room_projection: projection })
         },
         headers,
         { optional: true }
       );
 
-      if (payload.task_id) {
+      if (projection.task_status.task_id) {
         result.taskStatus = await this.postRoute(
           this.config.harvis.routes.taskStatus,
           {
             root,
-            task_id: payload.task_id,
-            status: payload.status || "reported",
-            metadata
+            task_id: projection.task_status.task_id,
+            status: projection.task_status.status,
+            metadata: redact({ ...metadata, agent_room_projection: projection })
           },
           headers,
           { optional: true }

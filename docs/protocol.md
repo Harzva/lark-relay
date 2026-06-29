@@ -36,13 +36,51 @@ Recommended:
 - `evidence`
 - `next_action`
 
+## `mobilecode.status.v1`
+
+MobileCode can export this read-only status object for P1.
+
+```json
+{
+  "type": "mobilecode.status.v1",
+  "task_id": "hm_task_project_check_001",
+  "correlation_id": "corr_mobilecode_harvis_001",
+  "state": "running",
+  "phase": "project_check",
+  "updated_at": "2026-06-29T09:41:00Z",
+  "next_action": "continue_project_check"
+}
+```
+
+Schema: `schemas/mobilecode-status.schema.json`.
+
+## `mobilecode.action_evidence.v1`
+
+MobileCode can export this read-only ActionEvidence object for P1/P2.
+
+```json
+{
+  "type": "mobilecode.action_evidence.v1",
+  "task_id": "hm_task_project_check_001",
+  "correlation_id": "corr_mobilecode_harvis_001",
+  "action": "project_check",
+  "status": "verified",
+  "summary": "Project check passed.",
+  "observations": [],
+  "created_at": "2026-06-29T09:42:00Z",
+  "next_action": "render_in_harvis_agent_room"
+}
+```
+
+Schema: `schemas/mobilecode-action-evidence.schema.json`.
+
 ## Harvis Mapping
 
 The relay sends a normalized message to:
 
 - `POST /router/message`
-- `POST /agent-room/message` for MobileCode evidence
-- `POST /agent-room/task/status` when `task_id` is present
+- `POST /agent-room/message` for MobileCode status/evidence payloads
+- `POST /agent-room/task/status` for MobileCode payloads when `task_id` is present
 
 If the Agent Room task-status endpoint is not available yet, that optional
 request can fail without dropping the main router message.

@@ -86,6 +86,18 @@ export function parseRelayPayload(text, config) {
 }
 
 export function payloadToHarvisText(payload) {
+  if (payload.type === "mobilecode.status.v1") {
+    const state = stringValue(payload.state) || "reported";
+    const phase = stringValue(payload.phase) || "unknown";
+    const current = stringValue(payload.progress?.current) || stringValue(payload.next_action);
+    return `MobileCode status ${state}: phase=${phase}${current ? ` current=${current}` : ""}`;
+  }
+  if (payload.type === "mobilecode.action_evidence.v1") {
+    const status = stringValue(payload.status) || "reported";
+    const action = stringValue(payload.action) || "action";
+    const summary = stringValue(payload.summary) || "MobileCode action evidence.";
+    return `MobileCode ${action} ${status}: ${summary}`;
+  }
   if (payload.type === "mobilecode.evidence.v1") {
     const status = stringValue(payload.status) || "unknown";
     const summary = stringValue(payload.summary) || "MobileCode evidence update.";
@@ -101,6 +113,16 @@ export function payloadToHarvisText(payload) {
 }
 
 export function buildReplyText(payload, config, harvisResult) {
+  if (payload.type === "mobilecode.status.v1") {
+    return `MobileCode status received: ${stringValue(payload.state) || "reported"}. Next: ${
+      stringValue(payload.next_action) || "review"
+    }`;
+  }
+  if (payload.type === "mobilecode.action_evidence.v1") {
+    return `MobileCode ActionEvidence received: ${
+      stringValue(payload.status) || "reported"
+    }. ${stringValue(payload.summary) || ""}`.trim();
+  }
   if (payload.type === "mobilecode.evidence.v1") {
     return config.mobilecode.evidenceReplyTemplate
       .replace("{status}", stringValue(payload.status) || "unknown")

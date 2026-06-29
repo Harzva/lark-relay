@@ -44,6 +44,8 @@ Deliverables:
 
 - `docs/harvis-mobilecode-integration.md`
 - `schemas/mobilecode-harvis-task.schema.json`
+- `schemas/mobilecode-status.schema.json`
+- `schemas/mobilecode-action-evidence.schema.json`
 - `examples/harvis-mobilecode-task.project_check.json`
 - `examples/mobilecode-status.readonly.json`
 - `examples/mobilecode-action-evidence.project_check.json`
@@ -65,6 +67,18 @@ MobileCode exports read-only JSON:
 
 Harvis reads those objects and displays them in Agent Room. P1 must not trigger
 MobileCode execution automatically.
+
+Bridge-side checks:
+
+```bash
+lark-relay render-agent-room --config examples/lark-relay.p1-dry-run.config.json --file examples/mobilecode-status.readonly.json
+lark-relay render-agent-room --config examples/lark-relay.p1-dry-run.config.json --file examples/mobilecode-action-evidence.project_check.json
+lark-relay route-file --config examples/lark-relay.p1-dry-run.config.json --file examples/mobilecode-status-event.json --no-reply
+lark-relay route-file --config examples/lark-relay.p1-dry-run.config.json --file examples/mobilecode-action-evidence-event.json --no-reply
+```
+
+The first two commands only render Agent Room projection JSON. The `route-file`
+commands simulate a Lark message entering the relay.
 
 ### P2 Single Approval-Gated Handoff
 

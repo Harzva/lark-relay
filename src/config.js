@@ -29,7 +29,11 @@ export const DEFAULT_CONFIG = Object.freeze({
   },
   mobilecode: {
     agentId: "agent:mobilecode",
-    acceptedTypes: ["mobilecode.evidence.v1"],
+    acceptedTypes: [
+      "mobilecode.status.v1",
+      "mobilecode.action_evidence.v1",
+      "mobilecode.evidence.v1"
+    ],
     evidenceReplyTemplate:
       "MobileCode evidence received: {status}. {summary} Next: {next_action}"
   },

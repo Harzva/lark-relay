@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Harzva/lark-relay/schemas/mobilecode-action-evidence.schema.json",
+  "title": "MobileCode ActionEvidence",
+  "description": "Read-only evidence export produced after an approved MobileCode handoff.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "type",
+    "task_id",
+    "correlation_id",
+    "action",
+    "status",
+    "summary",
+    "observations",
+    "created_at",
+    "next_action"
+  ],
+  "properties": {
+    "type": {
+      "const": "mobilecode.action_evidence.v1"
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "correlation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action": {
+      "enum": ["project_check", "validate"]
+    },
+    "status": {
+      "enum": ["queued", "running", "verified", "failed", "cancelled"]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "next_action": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

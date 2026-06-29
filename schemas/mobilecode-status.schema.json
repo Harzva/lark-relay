@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Harzva/lark-relay/schemas/mobilecode-status.schema.json",
+  "title": "MobileCode Status",
+  "description": "Read-only status export from an existing MobileCode runtime.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "type",
+    "task_id",
+    "correlation_id",
+    "runtime",
+    "state",
+    "phase",
+    "updated_at",
+    "next_action"
+  ],
+  "properties": {
+    "type": {
+      "const": "mobilecode.status.v1"
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "correlation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "runtime": {
+      "type": "object"
+    },
+    "state": {
+      "enum": ["queued", "accepted", "running", "needs_human", "verified", "failed", "cancelled"]
+    },
+    "phase": {
+      "type": "string",
+      "minLength": 1
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "next_action": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

@@ -23,7 +23,9 @@ export const DEFAULT_CONFIG = Object.freeze({
     timeoutMs: 5000,
     routes: {
       routerMessage: "/router/message",
+      agentRoomTopic: "/agent-room/topic",
       agentRoomMessage: "/agent-room/message",
+      taskCreate: "/agent-room/task",
       taskStatus: "/agent-room/task/status"
     }
   },

@@ -55,14 +55,34 @@ export class HarvisClient {
 
     if (isMobileCodePayload(payload)) {
       const projection = buildAgentRoomProjection(payload, this.config, event);
+      let topicId = projection.topic_id;
+      if (!topicId) {
+        const topicResult = await this.postRoute(
+          this.config.harvis.routes.agentRoomTopic,
+          {
+            root,
+            title: "MobileCode Runtime",
+            goal: "Read-only MobileCode status and evidence bridge.",
+            created_by: this.config.mobilecode.agentId
+          },
+          headers,
+          { optional: true }
+        );
+        result.agentRoomTopic = topicResult;
+        topicId = extractTopicId(topicResult);
+      }
+
       result.agentRoomMessage = await this.postRoute(
         this.config.harvis.routes.agentRoomMessage,
         {
           root,
+          topic_id: topicId,
           transport: "feishu",
           agent_id: this.config.mobilecode.agentId,
           role: "mobile-runtime",
           content: projection.message.content,
+          source_refs: projection.message.source_refs,
+          sensitivity: projection.message.sensitivity,
           metadata: redact({ ...metadata, agent_room_projection: projection })
         },
         headers,
@@ -70,12 +90,32 @@ export class HarvisClient {
       );
 
       if (projection.task_status.task_id) {
+        const taskStatus = toHarvisTaskStatus(projection.task_status.status);
+        const taskCreateResult = await this.postRoute(
+          this.config.harvis.routes.taskCreate,
+          {
+            root,
+            topic_id: topicId,
+            title: taskTitle(projection),
+            owner_slot_id: this.config.mobilecode.agentId,
+            status: taskStatus,
+            source_event_id: projection.event_id,
+            approval_id: projection.display.approval?.approval_id,
+            description: projection.message.content,
+            metadata: redact({ ...metadata, agent_room_projection: projection })
+          },
+          headers,
+          { optional: true }
+        );
+        result.taskCreate = taskCreateResult;
+        const harvisTaskId = extractTaskId(taskCreateResult) || projection.task_status.task_id;
         result.taskStatus = await this.postRoute(
           this.config.harvis.routes.taskStatus,
           {
             root,
-            task_id: projection.task_status.task_id,
-            status: projection.task_status.status,
+            task_id: harvisTaskId,
+            status: taskStatus,
+            note: projection.task_status.next_action || projection.message.content,
             metadata: redact({ ...metadata, agent_room_projection: projection })
           },
           headers,
@@ -133,6 +173,46 @@ export class HarvisClient {
       return "";
     }
   }
+}
+
+function extractTopicId(result) {
+  if (!result?.ok) return "";
+  return (
+    result.data?.topic_id ||
+    result.data?.data?.topic_id ||
+    result.data?.data?.topic?.topic_id ||
+    result.data?.data?.id ||
+    ""
+  );
+}
+
+function extractTaskId(result) {
+  if (!result?.ok) return "";
+  return result.data?.task_id || result.data?.data?.task_id || result.data?.data?.id || "";
+}
+
+function taskTitle(projection) {
+  const externalTaskId = projection.task_status.task_id;
+  const phase = projection.task_status.phase;
+  return ["MobileCode", phase, externalTaskId].filter(Boolean).join(" ");
+}
+
+export function toHarvisTaskStatus(status) {
+  const normalized = String(status || "").trim().toLowerCase();
+  if (["pending", "queued", "created"].includes(normalized)) return "pending";
+  if (["running", "in_progress", "processing", "reported"].includes(normalized)) {
+    return "in_progress";
+  }
+  if (["waiting_approval", "needs_approval", "approval_required"].includes(normalized)) {
+    return "waiting_approval";
+  }
+  if (["reviewing", "review"].includes(normalized)) return "reviewing";
+  if (["verified", "passed", "success", "succeeded", "done", "complete", "completed"].includes(normalized)) {
+    return "done";
+  }
+  if (["blocked", "failed", "failure", "error"].includes(normalized)) return "blocked";
+  if (["cancelled", "canceled"].includes(normalized)) return "cancelled";
+  return "in_progress";
 }
 
 async function withTimeout(promise, timeoutMs) {

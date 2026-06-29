@@ -79,11 +79,15 @@ Schema: `schemas/mobilecode-action-evidence.schema.json`.
 The relay sends a normalized message to:
 
 - `POST /router/message`
+- `POST /agent-room/topic` when a MobileCode payload does not provide a topic id
 - `POST /agent-room/message` for MobileCode status/evidence payloads
-- `POST /agent-room/task/status` for MobileCode payloads when `task_id` is present
+- `POST /agent-room/task` for MobileCode payloads when `task_id` is present
+- `POST /agent-room/task/status` using the Harvis-generated task id
 
-If the Agent Room task-status endpoint is not available yet, that optional
-request can fail without dropping the main router message.
+MobileCode status words are mapped into Harvis Agent Room task statuses. For
+example, `running` becomes `in_progress` and `verified` becomes `done`. Agent
+Room requests are optional and can fail without dropping the main router
+message.
 
 ## Harvis + MobileCode Task Handoff
 

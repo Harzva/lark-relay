@@ -137,7 +137,7 @@ export class Relay {
     return evidence;
   }
 
-  async run({ once = false, maxEvents = 0, timeout = "60s" } = {}) {
+  async run({ once = false, maxEvents = 0, timeout = "0" } = {}) {
     await this.loadState();
     let processed = 0;
     return new Promise((resolve, reject) => {

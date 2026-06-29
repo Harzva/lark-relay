@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 
-export function buildConsumeArgs(config, { maxEvents = 0, timeout = "60s" } = {}) {
+export function buildConsumeArgs(config, { maxEvents = 0, timeout = "0" } = {}) {
   const args = [];
   if (config.lark.profile) args.push("--profile", config.lark.profile);
   args.push("event", "consume", config.lark.eventKey, "--as", config.lark.identity);
@@ -36,7 +36,8 @@ export function spawnEventConsumer(config, handlers, options = {}) {
   const args = buildConsumeArgs(config, options);
   const child = spawn(config.lark.cliBin, args, {
     cwd: options.cwd || process.cwd(),
-    stdio: ["ignore", "pipe", "pipe"]
+    // Keep stdin open: unbounded `lark-cli event consume` treats stdin EOF as shutdown.
+    stdio: ["pipe", "pipe", "pipe"]
   });
   child.stdout.setEncoding("utf8");
   child.stderr.setEncoding("utf8");
@@ -61,6 +62,41 @@ export async function sendReply(config, { messageId, text, runner = runCommand }
   const args = buildReplyArgs(config, { messageId, text });
   const result = await runner(config.lark.cliBin, args);
   return { command: [config.lark.cliBin, ...args], ...result };
+}
+
+export async function doctorLarkCli(config, { runner = runCommand } = {}) {
+  const checks = [];
+  const runCheck = async (name, args) => {
+    const result = await runner(config.lark.cliBin, args);
+    checks.push({
+      name,
+      ok: result.ok,
+      code: result.code,
+      command: [config.lark.cliBin, ...args],
+      error: result.ok ? null : summarizeError(result.stderr || result.stdout)
+    });
+  };
+
+  await runCheck("lark_cli_version", ["--version"]);
+  await runCheck("event_consume_help", ["event", "consume", "--help"]);
+  await runCheck("im_reply_help", ["im", "+messages-reply", "--help"]);
+
+  const schemaArgs = [];
+  if (config.lark.profile) schemaArgs.push("--profile", config.lark.profile);
+  schemaArgs.push("event", "schema", config.lark.eventKey, "--json");
+  await runCheck("event_schema", schemaArgs);
+
+  return {
+    ok: checks.every((check) => check.ok),
+    eventKey: config.lark.eventKey,
+    identity: config.lark.identity,
+    profile: config.lark.profile || null,
+    checks
+  };
+}
+
+function summarizeError(value = "") {
+  return value.trim().split(/\r?\n/).slice(0, 4).join("\n") || "command failed";
 }
 
 export function runCommand(command, args) {

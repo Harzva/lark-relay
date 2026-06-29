@@ -28,8 +28,12 @@ systemctl --user enable --now lark-relay
 
 ```bash
 lark-relay check --config /path/to/lark-relay.config.json
+lark-relay doctor-lark --config /path/to/lark-relay.config.json
 lark-relay route-file --config /path/to/lark-relay.config.json --file examples/mobilecode-evidence-event.json --no-reply
 ```
+
+For the first Lark CLI integration, follow
+[lark-cli-bringup.md](lark-cli-bringup.md) before enabling live replies.
 
 ## Upgrade
 

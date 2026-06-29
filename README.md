@@ -97,6 +97,7 @@ Check the config:
 
 ```bash
 lark-relay check --config ~/.config/lark-relay/config.json
+lark-relay doctor-lark --config ~/.config/lark-relay/config.json
 ```
 
 Run one local fixture without replying to Lark:
@@ -155,12 +156,15 @@ With the default prefix:
 ```bash
 lark-relay init
 lark-relay check
+lark-relay doctor-lark
 lark-relay route-file --file event.json
 lark-relay run
 ```
 
 See [docs/protocol.md](docs/protocol.md) for payload details and
-[docs/operations.md](docs/operations.md) for launchd/systemd examples.
+[docs/lark-cli-bringup.md](docs/lark-cli-bringup.md) for the first Lark CLI
+bring-up. See [docs/operations.md](docs/operations.md) for launchd/systemd
+examples.
 
 ## Production Notes
 

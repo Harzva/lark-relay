@@ -3,6 +3,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { ConfigError, loadConfig, writeDefaultConfig } from "./config.js";
+import { doctorLarkCli } from "./lark.js";
 import { Relay } from "./relay.js";
 
 const VERSION = "0.1.0";
@@ -19,6 +20,7 @@ async function main(argv) {
   }
   if (command === "init") return initCommand(args);
   if (command === "check") return checkCommand(args);
+  if (command === "doctor-lark") return doctorLarkCommand(args);
   if (command === "route-file") return routeFileCommand(args);
   if (command === "run") return runCommand(args);
   throw new Error(`Unknown command: ${command}`);
@@ -56,6 +58,14 @@ async function checkCommand(args) {
   return 0;
 }
 
+async function doctorLarkCommand(args) {
+  const options = parseOptions(args);
+  const { config, path } = await loadConfig(options.config || "lark-relay.config.json");
+  const report = await doctorLarkCli(config);
+  console.log(JSON.stringify({ ...report, config: path }, null, 2));
+  return report.ok ? 0 : 1;
+}
+
 async function routeFileCommand(args) {
   const options = parseOptions(args);
   if (!options.file) throw new Error("route-file requires --file <event.json>");
@@ -76,7 +86,7 @@ async function runCommand(args) {
   const result = await relay.run({
     once: options.once === true,
     maxEvents: Number(options.maxEvents || options["max-events"] || 0),
-    timeout: String(options.timeout || "60s")
+    timeout: String(options.timeout || "0")
   });
   console.log(JSON.stringify(result, null, 2));
   return 0;
@@ -115,8 +125,9 @@ No-public-IP Lark relay for MobileCode, Harvis, and local agent runtimes.
 Usage:
   lark-relay init [--config lark-relay.config.json] [--force]
   lark-relay check [--config lark-relay.config.json]
+  lark-relay doctor-lark [--config lark-relay.config.json]
   lark-relay route-file --file event.json [--config lark-relay.config.json] [--no-reply]
-  lark-relay run [--config lark-relay.config.json] [--once] [--max-events 1] [--timeout 60s]
+  lark-relay run [--config lark-relay.config.json] [--once] [--max-events 1] [--timeout 2m]
 
 Install:
   npx github:Harzva/lark-relay init

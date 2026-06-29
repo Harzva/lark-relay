@@ -1,0 +1,59 @@
+{
+  "schema_version": "mobilecode.harvis.task.v1",
+  "task_id": "hm_task_project_check_001",
+  "correlation_id": "corr_mobilecode_harvis_001",
+  "created_at": "2026-06-29T09:40:00Z",
+  "source": {
+    "system": "harvis",
+    "agent_room_topic_id": "topic_mobilecode_bridge_001",
+    "agent_room_event_id": "evt_mobilecode_bridge_request_001",
+    "requested_by": "agent:planner"
+  },
+  "target": {
+    "runtime": "mobilecode",
+    "capabilities": ["status_export", "evidence_export", "project_check"],
+    "device_selector": {
+      "kind": "none",
+      "label": "no device required for P0 fixture",
+      "required": false
+    }
+  },
+  "handoff": {
+    "mode": "approval_gated_action",
+    "requires_approval": true,
+    "approval_id": "appr_project_check_001",
+    "allowed_actions": ["project_check"],
+    "risk": "low",
+    "human_summary": "Ask existing MobileCode to inspect project readiness and export structured evidence."
+  },
+  "task": {
+    "kind": "project_check",
+    "title": "Check MobileCode bridge readiness",
+    "input": {
+      "project_ref": {
+        "kind": "repo",
+        "value": "Harzva/lark-relay",
+        "commit": "P0-fixture"
+      },
+      "checks": [
+        "read protocol fixture",
+        "verify status export shape",
+        "verify evidence export shape"
+      ],
+      "instructions": "Do not publish, deploy, or modify remote state. Export status and evidence JSON only."
+    },
+    "timeout_ms": 300000
+  },
+  "evidence_contract": {
+    "expected_types": [
+      "mobilecode.status.v1",
+      "mobilecode.action_evidence.v1",
+      "mobilecode.evidence.v1"
+    ],
+    "redaction": "public_safe",
+    "write_back": {
+      "transport": "lark-relay",
+      "target": "configured MobileCode bridge chat"
+    }
+  }
+}

@@ -27,6 +27,14 @@
 - [ ] 尚未完成真实 Lark profile、真实 chat id、真实 Harvis API 的端到端 live 验证。
 - [ ] 尚未发布 npm registry 包；当前可通过 GitHub npx 方式运行。
 
+## 当前执行顺序
+
+- [x] P0：协议文档和 fixture。
+  - Evidence: `docs/harvis-mobilecode-integration.md`、`schemas/mobilecode-harvis-task.schema.json`、`examples/harvis-mobilecode-task.project_check.json`、`examples/mobilecode-status.readonly.json`、`examples/mobilecode-action-evidence.project_check.json`。
+- [ ] P1：只读状态桥。MobileCode 导出 status/evidence JSON，Harvis 在 Agent Room 只读展示。
+- [ ] P2：单个 approval-gated handoff。只支持 `project_check` 或 `validate`。
+- [ ] P3：接 GitHub Pages / Actions / mobile smoke evidence；需要安卓部署时使用 Android emulator 测试。
+
 ## 阶段 0：治理与基线（已启动）
 
 - 建立路线图与变更日志（本文件）

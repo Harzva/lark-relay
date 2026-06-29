@@ -163,8 +163,9 @@ lark-relay run
 
 See [docs/protocol.md](docs/protocol.md) for payload details and
 [docs/lark-cli-bringup.md](docs/lark-cli-bringup.md) for the first Lark CLI
-bring-up. See [docs/operations.md](docs/operations.md) for launchd/systemd
-examples.
+bring-up. See [docs/harvis-mobilecode-integration.md](docs/harvis-mobilecode-integration.md)
+for the Harvis Agent Room + MobileCode handoff contract, and
+[docs/operations.md](docs/operations.md) for launchd/systemd examples.
 
 ## Production Notes
 

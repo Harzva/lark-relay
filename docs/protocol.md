@@ -47,6 +47,19 @@ The relay sends a normalized message to:
 If the Agent Room task-status endpoint is not available yet, that optional
 request can fail without dropping the main router message.
 
+## Harvis + MobileCode Task Handoff
+
+For Harvis-initiated work, use the task envelope in
+`schemas/mobilecode-harvis-task.schema.json`.
+
+The first supported approval-gated actions are:
+
+- `project_check`
+- `validate`
+
+See [harvis-mobilecode-integration.md](harvis-mobilecode-integration.md) for the
+P0 fixtures and the Agent Room mapping.
+
 ## Safety
 
 - Lark messages are filtered by chat id and trigger prefix.

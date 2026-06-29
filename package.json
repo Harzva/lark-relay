@@ -10,6 +10,7 @@
     "src",
     "examples",
     "docs",
+    "schemas",
     "README.md",
     "ROADMAP.md",
     "LICENSE"

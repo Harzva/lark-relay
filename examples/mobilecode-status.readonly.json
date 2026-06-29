@@ -1,0 +1,31 @@
+{
+  "type": "mobilecode.status.v1",
+  "task_id": "hm_task_project_check_001",
+  "correlation_id": "corr_mobilecode_harvis_001",
+  "runtime": {
+    "name": "mobilecode",
+    "mode": "existing-runtime-adapter",
+    "version": "unknown",
+    "host": "local"
+  },
+  "state": "running",
+  "phase": "project_check",
+  "progress": {
+    "completed": 1,
+    "total": 3,
+    "current": "verify status export shape"
+  },
+  "capabilities": ["status_export", "evidence_export", "project_check"],
+  "device": {
+    "kind": "none",
+    "required": false,
+    "status": "not_required"
+  },
+  "approval": {
+    "required": true,
+    "approval_id": "appr_project_check_001",
+    "status": "approved"
+  },
+  "updated_at": "2026-06-29T09:41:00Z",
+  "next_action": "continue_project_check"
+}

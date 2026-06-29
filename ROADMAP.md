@@ -31,7 +31,10 @@
 
 - [x] P0：协议文档和 fixture。
   - Evidence: `docs/harvis-mobilecode-integration.md`、`schemas/mobilecode-harvis-task.schema.json`、`examples/harvis-mobilecode-task.project_check.json`、`examples/mobilecode-status.readonly.json`、`examples/mobilecode-action-evidence.project_check.json`。
-- [ ] P1：只读状态桥。MobileCode 导出 status/evidence JSON，Harvis 在 Agent Room 只读展示。
+- [x] P1：只读状态桥。MobileCode 导出 status/evidence JSON，Harvis 在 Agent Room 只读展示。
+  - Evidence: lark-relay commit `a7ab9a2` adds `render-agent-room`, Agent Room projection, status/action evidence schemas, and fixture route tests. MobileCode commit `844b9c4` adds `HarvisMobileCodeBridgeService` for read-only `mobilecode.status.v1` and `mobilecode.action_evidence.v1` export.
+- [ ] P1 smoke：真实 Lark 消息进入 `lark-relay`，reply 保持 dry-run。
+  - Current evidence: fixture smoke passed with `examples/lark-relay.p1-dry-run.config.json` and `examples/mobilecode-status-event.json`; `lark-cli` profiles currently report 0 bot-visible chats, so a real chat id / bot membership is still needed before live Lark smoke.
 - [ ] P2：单个 approval-gated handoff。只支持 `project_check` 或 `validate`。
 - [ ] P3：接 GitHub Pages / Actions / mobile smoke evidence；需要安卓部署时使用 Android emulator 测试。
 

@@ -34,7 +34,7 @@ export function buildReplyArgs(config, { messageId, text, idempotencyKey = rando
 
 export function buildSendMessageArgs(
   config,
-  { text, idempotencyKey = randomUUID(), dryRun = true } = {}
+  { text, idempotencyKey = randomUUID(), dryRun = true, identity = config.lark.identity } = {}
 ) {
   const chatId = config.lark.targetChatIds?.[0];
   if (!chatId) throw new Error("lark.targetChatIds must contain one chat for send.");
@@ -44,7 +44,7 @@ export function buildSendMessageArgs(
     "im",
     "+messages-send",
     "--as",
-    config.lark.identity,
+    identity,
     "--chat-id",
     chatId,
     "--text",
@@ -92,9 +92,9 @@ export async function sendReply(config, { messageId, text, runner = runCommand }
 
 export async function sendMessage(
   config,
-  { text, idempotencyKey, dryRun = true, runner = runCommand }
+  { text, idempotencyKey, dryRun = true, identity = config.lark.identity, runner = runCommand }
 ) {
-  const args = buildSendMessageArgs(config, { text, idempotencyKey, dryRun });
+  const args = buildSendMessageArgs(config, { text, idempotencyKey, dryRun, identity });
   const result = await runner(config.lark.cliBin, args);
   return { command: [config.lark.cliBin, ...args], ...result };
 }

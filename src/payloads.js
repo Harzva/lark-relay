@@ -48,16 +48,17 @@ export function shouldProcessEvent(event, config) {
   if (config.safety.requireKnownChat && !config.lark.targetChatIds.includes(event.chatId)) {
     return { ok: false, reason: "unknown_chat" };
   }
+  const triggerText = stripLeadingMentions(event.text);
   const matchedPrefix = config.lark.triggerPrefixes.find((prefix) =>
-    event.text.startsWith(prefix)
+    triggerText.startsWith(prefix)
   );
   if (config.lark.triggerPrefixes.length > 0 && !matchedPrefix) {
     return { ok: false, reason: "trigger_prefix_not_matched" };
   }
   const text =
     matchedPrefix && config.lark.stripTriggerPrefix
-      ? event.text.slice(matchedPrefix.length).trim()
-      : event.text;
+      ? triggerText.slice(matchedPrefix.length).trim()
+      : triggerText;
   if (!text) return { ok: false, reason: "empty_message" };
   return { ok: true, reason: "matched", text, matchedPrefix };
 }
@@ -173,6 +174,15 @@ function contentToText(value) {
   const decoded = parseJsonish(trimmed);
   if (decoded && typeof decoded.text === "string") return decoded.text;
   return trimmed;
+}
+
+function stripLeadingMentions(text) {
+  let output = String(text || "").trim();
+  for (;;) {
+    const next = output.replace(/^(@[^\s]+\s+|<at\b[^>]*><\/at>\s*)/i, "").trimStart();
+    if (next === output) return output;
+    output = next;
+  }
 }
 
 function parseJsonish(text) {

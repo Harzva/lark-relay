@@ -123,7 +123,9 @@ lark-relay p1-smoke --config ~/.config/lark-relay/config.json
 `p1-smoke` runs the same read-only chat readiness check as
 `doctor-lark --check-chats`, then calls `lark-cli im +messages-send --dry-run`.
 It redacts the target chat id from its report. To send the smoke message after
-explicit human approval, run it with `--send --yes`.
+explicit human approval, run it with `--send --yes`. For group receive-event
+smokes, use `--send-as user --mention-all` in a dedicated test chat so the bot
+receives a real Lark event.
 
 Start the relay:
 

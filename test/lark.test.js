@@ -99,6 +99,21 @@ test("builds live P1 smoke send args only when dryRun is false", () => {
   assert.equal(args.includes("--dry-run"), false);
 });
 
+test("builds P1 smoke send args with identity override", () => {
+  const config = mergeConfig(DEFAULT_CONFIG, {
+    lark: { identity: "bot", targetChatIds: ["oc_1"] }
+  });
+
+  const args = buildSendMessageArgs(config, {
+    text: "[mobilecode] {}",
+    idempotencyKey: "p1-smoke",
+    identity: "user"
+  });
+
+  assert.equal(args[args.indexOf("--as") + 1], "user");
+  assert.equal(args.includes("--dry-run"), true);
+});
+
 test("doctorLarkCli verifies local command surfaces without sending messages", async () => {
   const calls = [];
   const config = mergeConfig(DEFAULT_CONFIG, {

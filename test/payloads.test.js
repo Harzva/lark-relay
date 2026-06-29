@@ -41,6 +41,26 @@ test("filters by chat and trigger prefix", () => {
   assert.equal(decision.text, "ping");
 });
 
+test("matches trigger prefix after a leading Lark mention token", () => {
+  const config = {
+    ...structuredClone(DEFAULT_CONFIG),
+    lark: {
+      ...structuredClone(DEFAULT_CONFIG.lark),
+      targetChatIds: ["oc_1"],
+      triggerPrefixes: ["[mobilecode]"]
+    }
+  };
+  const event = normalizeLarkEvent({
+    event_id: "evt_1",
+    message_id: "om_1",
+    chat_id: "oc_1",
+    content: "@_all [mobilecode] ping"
+  });
+  const decision = shouldProcessEvent(event, config);
+  assert.equal(decision.ok, true);
+  assert.equal(decision.text, "ping");
+});
+
 test("parses MobileCode evidence payload", () => {
   const payload = parseRelayPayload(
     '{"type":"mobilecode.evidence.v1","status":"verified","summary":"ok"}',

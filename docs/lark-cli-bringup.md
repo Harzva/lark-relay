@@ -105,7 +105,7 @@ lark-relay run --config lark-relay.config.json --once --max-events 1 --timeout 2
 In terminal 2:
 
 ```bash
-lark-relay p1-smoke --config lark-relay.config.json --send --yes
+lark-relay p1-smoke --config lark-relay.config.json --send --yes --send-as user --mention-all
 ```
 
 Or send the message manually in the configured Lark chat:
@@ -113,6 +113,10 @@ Or send the message manually in the configured Lark chat:
 ```text
 [mobilecode] {"type":"mobilecode.status.v1","task_id":"bringup_1","state":"running","phase":"project_check","summary":"Lark CLI and lark-relay bring-up smoke passed.","updated_at":"2026-06-29T00:00:00.000Z"}
 ```
+
+In group chats, Lark receive events may require an @mention. `lark-relay`
+accepts leading mention tokens such as `@_all` before the configured trigger
+prefix, so an event content like `@_all [mobilecode] {...}` still matches.
 
 Expected result:
 

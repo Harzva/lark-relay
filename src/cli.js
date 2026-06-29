@@ -114,7 +114,9 @@ async function p1SmokeCommand(args) {
   const doctor = await doctorLarkCli(config, { checkChats: true });
   const payload = buildP1SmokePayload(options);
   const prefix = config.lark.triggerPrefixes?.[0] || "[mobilecode]";
-  const text = `${prefix} ${JSON.stringify(payload)}`;
+  const mention = options["mention-all"] === true ? '<at user_id="all"></at> ' : "";
+  const text = `${mention}${prefix} ${JSON.stringify(payload)}`;
+  const sendIdentity = String(options["send-as"] || config.lark.identity);
   const wantsLiveSend = options.send === true;
   if (wantsLiveSend && options.yes !== true) {
     throw new Error("p1-smoke --send requires --yes after explicit human approval.");
@@ -124,7 +126,8 @@ async function p1SmokeCommand(args) {
     ? await sendMessage(config, {
         text,
         idempotencyKey: String(options["idempotency-key"] || "p1-live-smoke-001"),
-        dryRun
+        dryRun,
+        identity: sendIdentity
       })
     : null;
   const report = {
@@ -133,6 +136,7 @@ async function p1SmokeCommand(args) {
     mode: dryRun ? "dry-run" : "live-send",
     lark: {
       identity: config.lark.identity,
+      sendIdentity,
       profile: config.lark.profile || null,
       readyForLiveSmoke: Boolean(doctor.chatVisibility?.readyForLiveSmoke),
       visibleChatCount: doctor.chatVisibility?.visibleChatCount || 0,
@@ -185,7 +189,14 @@ function parseOptions(args) {
       continue;
     }
     const key = arg.slice(2);
-    if (key === "force" || key === "once" || key === "no-reply" || key === "send" || key === "yes") {
+    if (
+      key === "force" ||
+      key === "once" ||
+      key === "no-reply" ||
+      key === "send" ||
+      key === "yes" ||
+      key === "mention-all"
+    ) {
       options[key === "no-reply" ? "reply" : key] = key === "no-reply" ? false : true;
       continue;
     }
@@ -211,7 +222,7 @@ Usage:
   lark-relay doctor-lark [--config lark-relay.config.json] [--check-chats]
   lark-relay render-agent-room --file payload.json [--config lark-relay.config.json]
   lark-relay route-file --file event.json [--config lark-relay.config.json] [--no-reply]
-  lark-relay p1-smoke [--config lark-relay.config.json] [--send --yes]
+  lark-relay p1-smoke [--config lark-relay.config.json] [--send --yes] [--send-as user] [--mention-all]
   lark-relay run [--config lark-relay.config.json] [--once] [--max-events 1] [--timeout 2m]
 
 Install:
